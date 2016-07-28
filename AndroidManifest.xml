@@ -1,0 +1,37 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.zhaohua.yotaphone.yotagear"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="19"
+        android:targetSdkVersion="19" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        
+        <!-- Adding YotaPhone SDK library -->
+        <uses-library android:name="com.yotadevices.yotaphone2.sdk.v2"
+            	android:required="true" />
+
+        <!-- App Widget that can work on a back screen -->
+		<receiver android:name=".BSWidget" > 
+			<intent-filter> 
+				<action android:name="android.appwidget.action.APPWIDGET_UPDATE" /> 
+			</intent-filter>
+		 
+			<!--Front screen widget settings --> 
+			<meta-data android:name="android.appwidget.provider" 
+			android:resource="@xml/fs_widget_info" /> 
+		 
+			<!-- Back screen widget settings --> 
+			<meta-data android:name="com.yotadevices.yotaphone.bs_provider" 
+			android:resource="@xml/bs_widget_info" /> 
+		</receiver>
+
+    </application>
+
+</manifest>
