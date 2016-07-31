@@ -89,6 +89,8 @@ public class BSWidget extends AppWidgetProvider {
 			compont_wifi.onStartCommand(views);
 			MyListener.onStartCommand(views);
 
+			views.setTextViewText(R.id.bt_start,
+					DateUtil.getSysDate()+"\n"+DateUtil.getWeek());
 		    /**注册按键启动应用*/
 			PackageManager packageManager = getPackageManager();
 			Intent start_intent=new Intent();
