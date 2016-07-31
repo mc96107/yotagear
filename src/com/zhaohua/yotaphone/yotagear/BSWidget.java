@@ -10,6 +10,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -17,8 +20,9 @@ import android.widget.RemoteViews;
 public class BSWidget extends AppWidgetProvider {
 
 	static BroadcastReceiver batteryReceiver;
-	static int currentBatteryLevel = -1;
-	static int currentBatteryStatus = -1;
+	static battery compont_battery=new battery();
+	static mywifi  compont_wifi=new mywifi();
+
 
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
@@ -28,6 +32,7 @@ public class BSWidget extends AppWidgetProvider {
 		RemoteViews views = new RemoteViews(context.getPackageName(),
 				R.layout.layout);
 		views.setTextViewText(R.id.tv_battery, "zhassjdhs");
+		views.setTextViewText(R.id.tv_wifi, "zhassjdhs");
 		appWidgetManager.updateAppWidget(appWidgetIds, views);
 
 		context.startService(new Intent(context, updateService.class));
@@ -45,8 +50,8 @@ public class BSWidget extends AppWidgetProvider {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				// TODO Auto-generated method stub
-				currentBatteryLevel = intent.getIntExtra("level", 0);
-				currentBatteryStatus = intent.getIntExtra("status", 0);
+				compont_battery.onReceive(context, intent);
+				compont_wifi.onReceive(context, intent);
 			}
 
 		};
@@ -55,8 +60,12 @@ public class BSWidget extends AppWidgetProvider {
 			super.onStartCommand(intent, flags, startId);
 
 			/** 注册接收器 */
-			registerReceiver(batteryReceiver, new IntentFilter(
-					Intent.ACTION_BATTERY_CHANGED));
+			IntentFilter filter=new IntentFilter();
+			filter.addAction(WifiManager.RSSI_CHANGED_ACTION);
+			filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+			filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+			filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+			registerReceiver(batteryReceiver, filter);
 
 			/** 定义一个AppWidgetManager */
 			AppWidgetManager manager = AppWidgetManager.getInstance(this);
@@ -65,20 +74,8 @@ public class BSWidget extends AppWidgetProvider {
 			RemoteViews views = new RemoteViews(getPackageName(),
 					R.layout.layout);
 
-			String s_status;
-			switch (currentBatteryStatus) {
-			case 2:
-				s_status = "正在充电: ";
-				break;
-			case 5:
-				s_status = "已充满: ";
-
-			default:
-				s_status = "剩余电量: ";
-			}
-
-			views.setTextViewText(R.id.tv_battery, s_status
-					+ currentBatteryLevel + "% ");
+			compont_battery.onStartCommand(views);
+			compont_wifi.onStartCommand(views);
 
 			ComponentName thisWidget = new ComponentName(this, BSWidget.class);
 
@@ -98,6 +95,89 @@ public class BSWidget extends AppWidgetProvider {
 			manager.updateAppWidget(thisWidget, views);
 			return START_STICKY;
 
+		}
+	}
+	
+	public static class battery{
+		static int currentBatteryLevel = -1;
+		static int currentBatteryStatus = -1;
+		public void onReceive(Context context, Intent intent) {
+			if(intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED))
+			{
+				currentBatteryLevel = intent.getIntExtra("level", 0);
+				currentBatteryStatus = intent.getIntExtra("status", 0);
+			}
+		}
+		public void onStartCommand(RemoteViews views) {
+			String s_status;
+			switch (currentBatteryStatus) {
+			case 2:
+				s_status = "正在充电: ";
+				break;
+			case 5:
+				s_status = "已充满: ";
+
+			default:
+				s_status = "剩余电量: ";
+			}
+
+			views.setTextViewText(R.id.tv_battery, currentBatteryLevel + "%\n"+s_status);
+		}
+	}
+	
+	
+	public static class mywifi{
+		static int wifistate = -1;
+		static int strength = -1;
+		static String s_wifi_state;
+		public void onReceive(Context context, Intent intent) {
+			if(intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION))
+			{
+				//WIFI开关
+				wifistate=intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,WifiManager.WIFI_STATE_DISABLED);
+				if(wifistate==WifiManager.WIFI_STATE_DISABLED)
+				{
+					s_wifi_state="wifi off";
+				}
+				else
+				{
+					strength=getStrength(context);
+				}
+				
+			}
+			else if(intent.getAction().equals(WifiManager.RSSI_CHANGED_ACTION))
+			{
+				strength=getStrength(context);
+			}
+			else if(intent.getAction().equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)){
+				NetworkInfo info=intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+				if(wifistate!=WifiManager.WIFI_STATE_DISABLED)
+				{
+					if(info.getState().equals(NetworkInfo.State.DISCONNECTED))
+					{//如果断开连接
+						s_wifi_state="网络已断开";
+					}
+					else
+					{
+						strength=getStrength(context);
+					}
+				}
+			}
+		}
+		public int getStrength(Context context)
+		{
+			WifiManager wifiManager = (WifiManager) context
+					.getSystemService(Context.WIFI_SERVICE);
+			WifiInfo info = wifiManager.getConnectionInfo();
+			if (info.getBSSID() != null) {
+				s_wifi_state = info.getSSID();
+				int strength = WifiManager.calculateSignalLevel(info.getRssi(), 5);
+				return strength;
+			}
+			return 0;
+		}
+		public void onStartCommand(RemoteViews views) {
+			views.setTextViewText(R.id.tv_wifi, strength + "%\n"+s_wifi_state);
 		}
 	}
 }
