@@ -10,6 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -76,7 +77,7 @@ public class BSWidget extends AppWidgetProvider {
 			/**监听移动信号状态*/
 			Tel = ( TelephonyManager )getSystemService(Context.TELEPHONY_SERVICE);  
 		    Tel.listen(MyListener ,PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);  
-			
+		    
 			/** 定义一个AppWidgetManager */
 			AppWidgetManager manager = AppWidgetManager.getInstance(this);
 
@@ -88,6 +89,15 @@ public class BSWidget extends AppWidgetProvider {
 			compont_wifi.onStartCommand(views);
 			MyListener.onStartCommand(views);
 
+		    /**注册按键启动应用*/
+			PackageManager packageManager = getPackageManager();
+			Intent start_intent=new Intent();
+			start_intent =packageManager.getLaunchIntentForPackage("com.duokan.reader");
+			if(intent==null){
+			System.out.println("APP not found!");
+			}
+			PendingIntent Pfullintent= PendingIntent.getActivity(this, 0, start_intent, 0);
+			views.setOnClickPendingIntent(R.id.bt_start, Pfullintent);
 			ComponentName thisWidget = new ComponentName(this, BSWidget.class);
 
 			/** 使用AlarmManager实现每隔一秒发送一次更新提示信息，实现信息实时动态变化 */

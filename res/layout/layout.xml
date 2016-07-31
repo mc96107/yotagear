@@ -23,10 +23,9 @@
 	    android:layout_weight="1"
 	    android:id ="@+id/tv_wifi"
 	    android:textColor="@android:color/white"/>
-	<TextView
-	    android:layout_width="0dp"
-	    android:layout_height="fill_parent"
-	    android:layout_weight="1"
-	    android:id ="@+id/tv_bt"
-	    android:textColor="@android:color/white"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:text="多看"
+        android:id ="@+id/bt_start"/>   
 </LinearLayout>
