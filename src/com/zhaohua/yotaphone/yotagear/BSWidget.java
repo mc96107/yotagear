@@ -14,6 +14,9 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
+import android.telephony.PhoneStateListener;
+import android.telephony.SignalStrength;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -22,6 +25,9 @@ public class BSWidget extends AppWidgetProvider {
 	static BroadcastReceiver batteryReceiver;
 	static battery compont_battery=new battery();
 	static mywifi  compont_wifi=new mywifi();
+	
+	static MyPhoneStateListener MyListener = new MyPhoneStateListener();   
+	static TelephonyManager Tel;  
 
 
 	@Override
@@ -67,6 +73,10 @@ public class BSWidget extends AppWidgetProvider {
 			filter.addAction(Intent.ACTION_BATTERY_CHANGED);
 			registerReceiver(batteryReceiver, filter);
 
+			/**监听移动信号状态*/
+			Tel = ( TelephonyManager )getSystemService(Context.TELEPHONY_SERVICE);  
+		    Tel.listen(MyListener ,PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);  
+			
 			/** 定义一个AppWidgetManager */
 			AppWidgetManager manager = AppWidgetManager.getInstance(this);
 
@@ -76,6 +86,7 @@ public class BSWidget extends AppWidgetProvider {
 
 			compont_battery.onStartCommand(views);
 			compont_wifi.onStartCommand(views);
+			MyListener.onStartCommand(views);
 
 			ComponentName thisWidget = new ComponentName(this, BSWidget.class);
 
@@ -116,7 +127,7 @@ public class BSWidget extends AppWidgetProvider {
 				break;
 			case 5:
 				s_status = "已充满: ";
-
+				break;
 			default:
 				s_status = "剩余电量: ";
 			}
@@ -180,4 +191,37 @@ public class BSWidget extends AppWidgetProvider {
 			views.setTextViewText(R.id.tv_wifi, strength + "%\n"+s_wifi_state);
 		}
 	}
+	
+	
+    public static class MyPhoneStateListener extends PhoneStateListener  
+    {
+    	static int strength = -1;
+    	static String type_string;
+	    @Override    
+	    public void onSignalStrengthsChanged(SignalStrength signalStrength)    
+	    {   
+	       super.onSignalStrengthsChanged(signalStrength);
+	       int type = Tel.getNetworkType();
+	       switch(type)
+		   {
+	       case TelephonyManager.NETWORK_TYPE_GPRS:
+	    	   type_string = "GPRS";
+	    	   break;
+	       case TelephonyManager.NETWORK_TYPE_EDGE:
+	    	   type_string = "EDGE";
+	    	   break;
+	       case TelephonyManager.NETWORK_TYPE_LTE:
+	    	   type_string = "LTE 4G";
+	    	   break;
+	       default:
+	    	   type_string = "unknow "+type;
+	    	  
+		   }
+	       strength = signalStrength.getGsmSignalStrength();  
+	    }
+	    
+		public void onStartCommand(RemoteViews views) {
+			views.setTextViewText(R.id.tv_sig, strength + "%\n"+type_string);
+		}
+    }
 }
