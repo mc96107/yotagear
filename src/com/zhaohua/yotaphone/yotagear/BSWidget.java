@@ -123,13 +123,13 @@ public class BSWidget extends AppWidgetProvider {
 			String s_status;
 			switch (currentBatteryStatus) {
 			case 2:
-				s_status = "正在充电: ";
+				s_status = "正在充电";
 				break;
 			case 5:
-				s_status = "已充满: ";
+				s_status = "已充满";
 				break;
 			default:
-				s_status = "剩余电量: ";
+				s_status = "剩余电量";
 			}
 
 			views.setTextViewText(R.id.tv_battery, currentBatteryLevel + "%\n"+s_status);
