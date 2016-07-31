@@ -31,6 +31,7 @@
 			<meta-data android:name="com.yotadevices.yotaphone.bs_provider" 
 			android:resource="@xml/bs_widget_info" /> 
 		</receiver>
+		<service android:name=".BSWidget$updateService"/> 
 
     </application>
 
