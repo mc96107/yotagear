@@ -200,7 +200,7 @@ public class BSWidget extends AppWidgetProvider {
 			return 0;
 		}
 		public void onStartCommand(RemoteViews views) {
-			views.setTextViewText(R.id.tv_wifi, strength + "%\n"+s_wifi_state);
+			views.setTextViewText(R.id.tv_wifi, strength + " 格\n"+s_wifi_state);
 		}
 	}
 	
@@ -229,11 +229,47 @@ public class BSWidget extends AppWidgetProvider {
 	    	   type_string = "unknow "+type;
 	    	  
 		   }
-	       strength = signalStrength.getGsmSignalStrength();  
+	       //Log.d("zhaohua", "zhaohua"+signalStrength.toString());
+	       strength = getDbm(signalStrength);  
 	    }
 	    
 		public void onStartCommand(RemoteViews views) {
-			views.setTextViewText(R.id.tv_sig, strength + "%\n"+type_string);
+			views.setTextViewText(R.id.tv_sig, strength + "dbm\n"+type_string);
+		}
+		
+		public int getDbm(SignalStrength signalStrength)
+		{
+			String ssignal = signalStrength.toString();
+			String[] parts = ssignal.split(" ");
+			/**
+			 * 该parts[]那么数组将包含这些
+			part[0] = "Signalstrength:" _ignore this, it's just the title_
+			parts[1] = GsmSignalStrength
+			parts[2] = GsmBitErrorRate
+			parts[3] = CdmaDbm
+			parts[4] = CdmaEcio
+			parts[5] = EvdoDbm
+			parts[6] = EvdoEcio
+			parts[7] = EvdoSnr
+			parts[8] = LteSignalStrength
+			parts[9] = LteRsrp ?感觉这个就是lte的dbm??
+			parts[10] = LteRsrq
+			parts[11] = LteRssnr
+			parts[12] = LteCqi
+			parts[13] = gsm|lte
+			parts[14] = _not reall sure what this number is_
+			*/
+			int dbm = 0;
+			if ( Tel.getNetworkType() == TelephonyManager.NETWORK_TYPE_LTE){
+			 dbm = Integer.parseInt(parts[9]);
+			}
+			else{
+			 if (signalStrength.getGsmSignalStrength() != 99) {
+			     dbm = -113 + 2
+			       * signalStrength.getGsmSignalStrength();
+			    }
+			}
+			return dbm;
 		}
     }
 }
